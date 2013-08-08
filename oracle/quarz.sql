@@ -1,0 +1,148 @@
+-- quartz tables
+
+-- Thanks to Patrick Lightbody for submitting this...
+--
+-- In your Quartz properties file, you'll need to set 
+-- org.quartz.jobStore.driverDelegateClass = org.quartz.impl.jdbcjobstore.PostgreSQLDelegate
+
+
+CREATE TABLE qrtz_job_details
+  (
+    JOB_NAME  varchar2(80) NOT NULL,
+    JOB_GROUP varchar2(80) NOT NULL,
+    DESCRIPTION varchar2(120) NULL,
+    JOB_CLASS_NAME   varchar2(128) NOT NULL, 
+    IS_DURABLE number(1) NOT NULL,
+    IS_VOLATILE number(1) NOT NULL,
+    IS_STATEFUL number(1) NOT NULL,
+    REQUESTS_RECOVERY number(1) NOT NULL,
+    JOB_DATA blob NULL,
+    PRIMARY KEY (JOB_NAME,JOB_GROUP)
+);
+
+CREATE TABLE qrtz_job_listeners
+  (
+    JOB_NAME  varchar2(80) NOT NULL, 
+    JOB_GROUP varchar2(80) NOT NULL,
+    JOB_LISTENER varchar2(80) NOT NULL,
+    PRIMARY KEY (JOB_NAME,JOB_GROUP,JOB_LISTENER),
+    FOREIGN KEY (JOB_NAME,JOB_GROUP) 
+	REFERENCES QRTZ_JOB_DETAILS(JOB_NAME,JOB_GROUP) 
+);
+
+CREATE TABLE qrtz_triggers
+  (
+    TRIGGER_NAME varchar2(80) NOT NULL,
+    TRIGGER_GROUP varchar2(80) NOT NULL,
+    JOB_NAME  varchar2(80) NOT NULL, 
+    JOB_GROUP varchar2(80) NOT NULL,
+    IS_VOLATILE number(1) NOT NULL,
+    DESCRIPTION varchar2(120) NULL,
+    NEXT_FIRE_TIME number NULL,
+    PREV_FIRE_TIME number NULL,
+    TRIGGER_STATE varchar2(16) NOT NULL,
+    TRIGGER_TYPE varchar2(8) NOT NULL,
+    START_TIME number NOT NULL,
+    END_TIME number NULL,
+    CALENDAR_NAME varchar2(80) NULL,
+    MISFIRE_INSTR SMALLINT NULL,
+    JOB_DATA blob NULL,
+    PRIMARY KEY (TRIGGER_NAME,TRIGGER_GROUP),
+    FOREIGN KEY (JOB_NAME,JOB_GROUP) 
+    REFERENCES QRTZ_JOB_DETAILS(JOB_NAME,JOB_GROUP) 
+);
+
+CREATE TABLE qrtz_simple_triggers
+  (
+    TRIGGER_NAME varchar2(80) NOT NULL,
+    TRIGGER_GROUP varchar2(80) NOT NULL,
+    REPEAT_COUNT number NOT NULL,
+    REPEAT_INTERVAL number NOT NULL,
+    TIMES_TRIGGERED number NOT NULL,
+    PRIMARY KEY (TRIGGER_NAME,TRIGGER_GROUP),
+    FOREIGN KEY (TRIGGER_NAME,TRIGGER_GROUP) 
+    REFERENCES QRTZ_TRIGGERS(TRIGGER_NAME,TRIGGER_GROUP)
+);
+
+CREATE TABLE qrtz_cron_triggers
+  (
+    TRIGGER_NAME varchar2(80) NOT NULL,
+    TRIGGER_GROUP varchar2(80) NOT NULL,
+    CRON_EXPRESSION varchar2(80) NOT NULL,
+    TIME_ZONE_ID varchar2(80),
+    PRIMARY KEY (TRIGGER_NAME,TRIGGER_GROUP),
+    FOREIGN KEY (TRIGGER_NAME,TRIGGER_GROUP) 
+	REFERENCES QRTZ_TRIGGERS(TRIGGER_NAME,TRIGGER_GROUP)
+);
+
+CREATE TABLE qrtz_blob_triggers
+  (
+    TRIGGER_NAME varchar2(80) NOT NULL,
+    TRIGGER_GROUP varchar2(80) NOT NULL,
+    BLOB_DATA blob NULL,
+    PRIMARY KEY (TRIGGER_NAME,TRIGGER_GROUP),
+    FOREIGN KEY (TRIGGER_NAME,TRIGGER_GROUP) 
+        REFERENCES QRTZ_TRIGGERS(TRIGGER_NAME,TRIGGER_GROUP)
+);
+
+CREATE TABLE qrtz_trigger_listeners
+  (
+    TRIGGER_NAME  varchar2(80) NOT NULL, 
+    TRIGGER_GROUP varchar2(80) NOT NULL,
+    TRIGGER_LISTENER varchar2(80) NOT NULL,
+    PRIMARY KEY (TRIGGER_NAME,TRIGGER_GROUP,TRIGGER_LISTENER),
+    FOREIGN KEY (TRIGGER_NAME,TRIGGER_GROUP) 
+	REFERENCES QRTZ_TRIGGERS(TRIGGER_NAME,TRIGGER_GROUP)
+);
+
+CREATE TABLE qrtz_calendars
+  (
+    CALENDAR_NAME  varchar2(80) NOT NULL, 
+    CALENDAR blob NOT NULL,
+    PRIMARY KEY (CALENDAR_NAME)
+);
+
+CREATE TABLE qrtz_paused_trigger_grps
+  (
+    TRIGGER_GROUP  varchar2(80) NOT NULL, 
+    PRIMARY KEY (TRIGGER_GROUP)
+);
+
+CREATE TABLE qrtz_fired_triggers 
+  (
+    ENTRY_ID varchar2(95) NOT NULL,
+    TRIGGER_NAME varchar2(80) NOT NULL,
+    TRIGGER_GROUP varchar2(80) NOT NULL,
+    IS_VOLATILE number(1) NOT NULL,
+    INSTANCE_NAME varchar2(80) NOT NULL,
+    FIRED_TIME number NOT NULL,
+    STATE varchar2(16) NOT NULL,
+    JOB_NAME varchar2(80) NULL,
+    JOB_GROUP varchar2(80) NULL,
+    IS_STATEFUL number(1) NULL,
+    REQUESTS_RECOVERY number(1) NULL,
+    PRIMARY KEY (ENTRY_ID)
+);
+
+CREATE TABLE qrtz_scheduler_state 
+  (
+    INSTANCE_NAME varchar2(80) NOT NULL,
+    LAST_CHECKIN_TIME number NOT NULL,
+    CHECKIN_INTERVAL number NOT NULL,
+    RECOVERER varchar2(80) NULL,
+    PRIMARY KEY (INSTANCE_NAME)
+);
+
+CREATE TABLE qrtz_locks
+  (
+    LOCK_NAME  varchar2(40) NOT NULL, 
+    PRIMARY KEY (LOCK_NAME)
+);
+
+
+INSERT INTO qrtz_locks values('TRIGGER_ACCESS');
+INSERT INTO qrtz_locks values('JOB_ACCESS');
+INSERT INTO qrtz_locks values('CALENDAR_ACCESS');
+INSERT INTO qrtz_locks values('STATE_ACCESS');
+INSERT INTO qrtz_locks values('MISFIRE_ACCESS');
+

@@ -1,0 +1,1 @@
+sqlplus SYS/PASSWORD@XE as SYSDBA @0_create_schema.sql
